@@ -45,8 +45,8 @@ def scan_file(file_path: str, pattern: re.Pattern, sensitive_word_lower: str) ->
         return
 
     try:
-        for line in reader(file_path):
-            if sensitive_word_lower in line.lower() and pattern.search(line):
+        for chunk in reader(file_path):
+            if sensitive_word_lower in chunk.lower() and pattern.search(chunk):
                 print(f"Sensitive content found in: {file_path}")
                 return
     except Exception as e:

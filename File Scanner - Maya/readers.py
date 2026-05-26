@@ -9,8 +9,13 @@ def _read_text(file_path: str) -> Iterator[str]:
 
 
 def _read_docx(file_path: str) -> Iterator[str]:
-    for para in Document(file_path).paragraphs:
+    doc = Document(file_path)
+    for para in doc.paragraphs:
         yield para.text
+    for table in doc.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                yield cell.text
 
 
 def _read_pdf(file_path: str) -> Iterator[str]:
