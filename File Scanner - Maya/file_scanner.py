@@ -15,33 +15,35 @@ def run_scan() -> None:
 
 def prompt_scan_inputs() -> tuple[str, str]:
     folder_path = input("Enter folder path to scan: ").strip()
-    sensitive_word = input("Enter sensitive word to search for: ").strip()
+    sensitive_word = ""
+    while not sensitive_word:
+        sensitive_word = input("Enter sensitive word to search for: ").strip()
+        if not sensitive_word:
+            print("Sensitive word cannot be empty. Please try again.")
     return folder_path, sensitive_word
 
 
 def scan_folder(folder_path: str, sensitive_word: str) -> None:
-    for entry in os.scandir(folder_path):
-        if entry.is_file():
-            scan_file(entry.path, sensitive_word)
-        elif entry.is_dir():
-            scan_folder(entry.path, sensitive_word)
-
-
-def scan_file(file_path: str, sensitive_word: str) -> None:
-    _, ext = os.path.splitext(file_path)
-    reader = READERS.get(ext.lower())
-    if reader is None:
-        return
-
     # \w covers letters/digits/underscore; also exclude apostrophe to reject "word's"
     pattern = re.compile(
         r"(?<!\w)" + re.escape(sensitive_word) + r"(?![\w'])",
         re.IGNORECASE,
     )
+    sensitive_word_lower = sensitive_word.lower()
+    for dirpath, _, filenames in os.walk(folder_path):
+        for filename in filenames:
+            scan_file(os.path.join(dirpath, filename), pattern, sensitive_word_lower)
+
+
+def scan_file(file_path: str, pattern: re.Pattern, sensitive_word_lower: str) -> None:
+    _, ext = os.path.splitext(file_path)
+    reader = READERS.get(ext.lower())
+    if reader is None:
+        return
 
     try:
         for line in reader(file_path):
-            if pattern.search(line):
+            if sensitive_word_lower in line.lower() and pattern.search(line):
                 print(file_path)
                 return
     except Exception as e:

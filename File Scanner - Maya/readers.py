@@ -15,7 +15,7 @@ def _read_docx(file_path: str) -> Iterator[str]:
 
 def _read_pdf(file_path: str) -> Iterator[str]:
     for page in pypdf.PdfReader(file_path).pages:
-        yield page.extract_text()
+        yield page.extract_text() or ""
 
 
 READERS: dict[str, Callable[[str], Iterator[str]]] = {
